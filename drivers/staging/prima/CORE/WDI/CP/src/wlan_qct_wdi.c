@@ -18420,8 +18420,12 @@ WDI_ProcessStartOemDataRsp
     return WDI_STATUS_E_FAILURE;
   }
 
+  wpalMemoryZero(wdiOemDataRspParams->oemDataRsp, OEM_DATA_RSP_SIZE);
+
   /* Populate WDI structure members */
-  wpalMemoryCopy(wdiOemDataRspParams->oemDataRsp, halStartOemDataRspParams->oemDataRsp, OEM_DATA_RSP_SIZE);
+  wpalMemoryCopy(wdiOemDataRspParams->oemDataRsp,
+                 halStartOemDataRspParams->oemDataRsp,
+                 pEventData->uEventDataSize);
 
   /*Notify UMAC*/
   wdiOemDataRspCb(wdiOemDataRspParams, pWDICtx->pRspCBUserData);
@@ -31034,6 +31038,7 @@ WDI_ProcessChAvoidInd
   WDI_LowLevelIndType  wdiInd;
   tHalAvoidFreqRangeIndParams chAvoidIndicationParam;
   wpt_uint16           rangeLoop;
+  wpt_uint32           dataSize;
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
   /*-------------------------------------------------------------------------
@@ -31048,12 +31053,16 @@ WDI_ProcessChAvoidInd
      return WDI_STATUS_E_FAILURE;
   }
 
+  dataSize = sizeof(tHalAvoidFreqRangeIndParams);
+  if (dataSize > pEventData->uEventDataSize)
+    dataSize = pEventData->uEventDataSize;
+
   /*-------------------------------------------------------------------------
   Extract indication and send it to UMAC
  -------------------------------------------------------------------------*/
   wpalMemoryCopy(&chAvoidIndicationParam,
                  pEventData->pEventData,
-                 sizeof(tHalAvoidFreqRangeIndParams));
+                 dataSize);
 
   /* Avoid Over flow */
   if (WLAN_HAL_MAX_AVOID_FREQ_RANGE < chAvoidIndicationParam.avoidCnt)
